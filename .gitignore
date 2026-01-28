@@ -5,9 +5,8 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Generated files (can be regenerated)
-packages/api/src/generated/
-packages/client/src/generated/
+# Generated files are tracked in git for reference
+# Note: Run `pnpm generate:zod` and `pnpm generate:client` to regenerate
 
 # Environment
 .env

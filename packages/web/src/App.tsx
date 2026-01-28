@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "./api/client";
-import type { components } from "@types-demo/client";
-
-// Type-safe types from the generated client!
-type User = components["schemas"]["User"];
-type Post = components["schemas"]["Post"];
+import type { User, Post } from "@types-demo/client";
 
 function App() {
   // Users state
@@ -34,14 +30,14 @@ function App() {
   // Fetch users - fully typed!
   const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
-    const { data, error } = await api.GET("/users");
-    if (error) {
-      showMessage("error", "Failed to fetch users");
-    } else if (data) {
+    try {
+      const data = await api.users.getUsers();
       setUsers(data);
       if (data.length > 0 && !selectedUserId) {
         setSelectedUserId(data[0].id);
       }
+    } catch {
+      showMessage("error", "Failed to fetch users");
     }
     setLoadingUsers(false);
   }, [selectedUserId]);
@@ -49,11 +45,11 @@ function App() {
   // Fetch posts - fully typed!
   const fetchPosts = useCallback(async () => {
     setLoadingPosts(true);
-    const { data, error } = await api.GET("/posts");
-    if (error) {
-      showMessage("error", "Failed to fetch posts");
-    } else if (data) {
+    try {
+      const data = await api.posts.getPosts();
       setPosts(data);
+    } catch {
+      showMessage("error", "Failed to fetch posts");
     }
     setLoadingPosts(false);
   }, []);
@@ -68,20 +64,19 @@ function App() {
     e.preventDefault();
     if (!newUserName || !newUserEmail) return;
 
-    const { data, error } = await api.POST("/users", {
-      body: {
-        name: newUserName,
-        email: newUserEmail,
-      },
-    });
-
-    if (error) {
-      showMessage("error", "Failed to create user");
-    } else if (data) {
+    try {
+      const data = await api.users.createUser({
+        createUserRequest: {
+          name: newUserName,
+          email: newUserEmail,
+        },
+      });
       showMessage("success", `Created user: ${data.name}`);
       setNewUserName("");
       setNewUserEmail("");
       fetchUsers();
+    } catch {
+      showMessage("error", "Failed to create user");
     }
   };
 
@@ -90,51 +85,44 @@ function App() {
     e.preventDefault();
     if (!newPostTitle || !newPostContent || !selectedUserId) return;
 
-    const { data, error } = await api.POST("/posts", {
-      body: {
-        title: newPostTitle,
-        content: newPostContent,
-        authorId: selectedUserId,
-        published: true,
-      },
-    });
-
-    if (error) {
-      showMessage("error", "Failed to create post");
-    } else if (data) {
+    try {
+      const data = await api.posts.createPost({
+        createPostRequest: {
+          title: newPostTitle,
+          content: newPostContent,
+          authorId: selectedUserId,
+          published: true,
+        },
+      });
       showMessage("success", `Created post: ${data.title}`);
       setNewPostTitle("");
       setNewPostContent("");
       fetchPosts();
+    } catch {
+      showMessage("error", "Failed to create post");
     }
   };
 
   // Delete user - path params are type-checked!
   const handleDeleteUser = async (id: string) => {
-    const { error } = await api.DELETE("/users/{id}", {
-      params: { path: { id } },
-    });
-
-    if (error) {
-      showMessage("error", "Failed to delete user");
-    } else {
+    try {
+      await api.users.deleteUser({ id });
       showMessage("success", "User deleted");
       fetchUsers();
       fetchPosts(); // Refresh posts as they may have been cascade deleted
+    } catch {
+      showMessage("error", "Failed to delete user");
     }
   };
 
   // Delete post - path params are type-checked!
   const handleDeletePost = async (id: string) => {
-    const { error } = await api.DELETE("/posts/{id}", {
-      params: { path: { id } },
-    });
-
-    if (error) {
-      showMessage("error", "Failed to delete post");
-    } else {
+    try {
+      await api.posts.deletePost({ id });
       showMessage("success", "Post deleted");
       fetchPosts();
+    } catch {
+      showMessage("error", "Failed to delete post");
     }
   };
 
@@ -325,9 +313,9 @@ function App() {
             fontSize: "0.875rem",
           }}
         >
-          {`// Create a user - body is type-checked!
-const { data } = await api.POST("/users", {
-  body: {
+          {`// Create a user - parameters are type-checked!
+const user = await api.users.createUser({
+  createUserRequest: {
     name: "John Doe",      // ✅ Required
     email: "john@example.com", // ✅ Required, must be email format
     // age: 25,             // ❌ TypeScript error: 'age' not in schema
@@ -335,9 +323,9 @@ const { data } = await api.POST("/users", {
 });
 
 // Response is typed!
-console.log(data.id);        // ✅ string (uuid)
-console.log(data.createdAt); // ✅ string (datetime)
-// console.log(data.foo);    // ❌ TypeScript error: 'foo' doesn't exist`}
+console.log(user.id);        // ✅ string (uuid)
+console.log(user.createdAt); // ✅ Date
+// console.log(user.foo);    // ❌ TypeScript error: 'foo' doesn't exist`}
         </pre>
       </div>
     </div>

@@ -1,13 +1,18 @@
-import createClient from "openapi-fetch";
-import type { paths } from "./generated/api.js";
+// Re-export all generated types and APIs
+export * from "./generated/index.js";
 
-// Re-export the generated types for consumers
-export type * from "./generated/api.js";
+// Import for convenience factory
+import { Configuration, UsersApi, PostsApi } from "./generated/index.js";
 
-// Create a typed API client
-export function createApiClient(baseUrl: string = "http://localhost:3000") {
-  return createClient<paths>({ baseUrl });
+// Factory function to create configured API clients
+export function createApiClients(basePath: string = "http://localhost:3000") {
+  const config = new Configuration({ basePath });
+
+  return {
+    users: new UsersApi(config),
+    posts: new PostsApi(config),
+  };
 }
 
-// Default client instance for convenience
-export const apiClient = createApiClient();
+// Default client instances for convenience
+export const api = createApiClients();

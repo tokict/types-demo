@@ -305,12 +305,15 @@ usersRouter.post("/", async (req, res, next) => {
 
 ### 4. Generated TypeScript Client
 
-Running `pnpm generate:client` creates fully typed API methods:
+Running `pnpm generate:client` uses OpenAPI Generator to create fully typed API classes:
 
 ```typescript
-// All paths, methods, request/response types are generated
-const { data, error } = await api.POST("/users", {
-  body: {
+import { api } from "./api/client";
+import type { User } from "@types-demo/client";
+
+// All methods, parameters, and responses are fully typed
+const user = await api.users.createUser({
+  createUserRequest: {
     name: "John",     // ✅ Required
     email: "j@x.com", // ✅ Required, must be email
     // age: 25,       // ❌ TypeScript error!
@@ -318,20 +321,29 @@ const { data, error } = await api.POST("/users", {
 });
 
 // Response is fully typed
-console.log(data.id);        // ✅ string
-console.log(data.createdAt); // ✅ string
+console.log(user.id);        // ✅ string
+console.log(user.createdAt); // ✅ Date
 ```
 
 ### 5. React Frontend
 
-The frontend imports types from the generated client:
+The frontend imports types directly from the generated client:
 
 ```typescript
-import type { components } from "@types-demo/client";
+import { api } from "./api/client";
+import type { User, Post } from "@types-demo/client";
 
-type User = components["schemas"]["User"];
+// Fetch users with full type safety
+const users: User[] = await api.users.getUsers();
 
-// Full autocomplete and type checking!
+// Create post with typed parameters
+const post: Post = await api.posts.createPost({
+  createPostRequest: {
+    title: "Hello",
+    content: "World",
+    authorId: users[0].id,
+  },
+});
 ```
 
 ## Available Scripts
@@ -344,6 +356,84 @@ type User = components["schemas"]["User"];
 | `pnpm generate:client` | Generate TypeScript client from OpenAPI |
 | `pnpm db:generate` | Generate Prisma client |
 | `pnpm db:push` | Push Prisma schema to database |
+
+## Multi-Language Client Generation
+
+Since we use [OpenAPI Generator](https://openapi-generator.tech/), you can generate clients for **50+ languages** from the same `openapi/spec.yaml` file.
+
+### Generate Clients for Other Languages
+
+```bash
+# Install OpenAPI Generator CLI globally
+npm install -g @openapitools/openapi-generator-cli
+
+# Generate Python client
+openapi-generator-cli generate \
+  -i openapi/spec.yaml \
+  -g python \
+  -o clients/python
+
+# Generate Go client
+openapi-generator-cli generate \
+  -i openapi/spec.yaml \
+  -g go \
+  -o clients/go
+
+# Generate Java client
+openapi-generator-cli generate \
+  -i openapi/spec.yaml \
+  -g java \
+  -o clients/java
+
+# Generate Swift client (iOS)
+openapi-generator-cli generate \
+  -i openapi/spec.yaml \
+  -g swift5 \
+  -o clients/swift
+
+# Generate Kotlin client (Android)
+openapi-generator-cli generate \
+  -i openapi/spec.yaml \
+  -g kotlin \
+  -o clients/kotlin
+```
+
+### Available Generators
+
+| Language | Generator | Use Case |
+|----------|-----------|----------|
+| Python | `python` | Backend services, scripts |
+| Go | `go` | Microservices, CLI tools |
+| Java | `java` | Enterprise applications |
+| Kotlin | `kotlin` | Android apps |
+| Swift | `swift5` | iOS apps |
+| C# | `csharp-netcore` | .NET applications |
+| Ruby | `ruby` | Rails applications |
+| PHP | `php` | Laravel/Symfony apps |
+| Rust | `rust` | Systems programming |
+| Dart | `dart` | Flutter apps |
+
+View all 50+ generators:
+```bash
+openapi-generator-cli list
+```
+
+### Example: Using Generated Python Client
+
+```python
+from openapi_client import ApiClient, Configuration, UsersApi
+
+config = Configuration(host="https://api.example.com")
+client = ApiClient(config)
+
+users_api = UsersApi(client)
+
+# Fully typed in IDEs with type hints!
+users = users_api.get_users()
+new_user = users_api.create_user(
+    create_user_request={"name": "John", "email": "john@example.com"}
+)
+```
 
 ## Publishing the Client Package
 
