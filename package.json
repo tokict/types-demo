@@ -1,0 +1,21 @@
+{
+  "name": "types-demo",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "generate": "turbo generate",
+    "generate:zod": "pnpm --filter @types-demo/api generate:zod",
+    "generate:client": "pnpm --filter @types-demo/client generate",
+    "db:push": "pnpm --filter @types-demo/api db:push",
+    "db:generate": "pnpm --filter @types-demo/api db:generate"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

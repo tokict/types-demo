@@ -1,0 +1,6 @@
+{
+  "name": "@types-demo/openapi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpenAPI specification - source of truth for the API"
+}
